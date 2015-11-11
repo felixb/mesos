@@ -1135,9 +1135,9 @@ private:
 
   struct Frameworks
   {
-    Frameworks() : completed(MAX_COMPLETED_FRAMEWORKS) {}
-
     hashmap<FrameworkID, Framework*> registered;
+
+    // Initialized via flags.
     boost::circular_buffer<std::shared_ptr<Framework>> completed;
 
     // Principals of frameworks keyed by PID.
@@ -1460,8 +1460,10 @@ struct Framework
       connected(true),
       active(true),
       registeredTime(time),
-      reregisteredTime(time),
-      completedTasks(MAX_COMPLETED_TASKS_PER_FRAMEWORK) {}
+      reregisteredTime(time)
+  {
+    completedTasks = boost::circular_buffer<std::shared_ptr<Task>>(master->flags.max_completed_tasks_per_framework);
+  }
 
   Framework(Master* const _master,
             const FrameworkInfo& _info,
@@ -1473,8 +1475,10 @@ struct Framework
       connected(true),
       active(true),
       registeredTime(time),
-      reregisteredTime(time),
-      completedTasks(MAX_COMPLETED_TASKS_PER_FRAMEWORK) {}
+      reregisteredTime(time)
+  {
+    completedTasks = boost::circular_buffer<std::shared_ptr<Task>>(master->flags.max_completed_tasks_per_framework);
+  }
 
   ~Framework()
   {
@@ -1811,6 +1815,7 @@ struct Framework
   // NOTE: We use a shared pointer for Task because clang doesn't like
   // Boost's implementation of circular_buffer with Task (Boost
   // attempts to do some memset's which are unsafe).
+  // Initialized via flags.
   boost::circular_buffer<std::shared_ptr<Task>> completedTasks;
 
   hashset<Offer*> offers; // Active offers for framework.
